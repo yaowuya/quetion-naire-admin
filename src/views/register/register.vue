@@ -55,7 +55,6 @@
   </div>
 </template>
 <script>
-import { getInfo } from '../../api/user'
 
 export default {
   name: 'Register',
@@ -96,7 +95,7 @@ export default {
       this.$refs.registerForm.validate(async valid => {
         if (valid) {
           // this.loading = true;
-          const res = await getInfo(this.registerForm.username)
+          const res = await this.$http.get(`user/users/findByName/${this.registerForm.username}`)
           if (res != null && res.username === this.registerForm.username) {
             this.$message({
               type: 'false',
