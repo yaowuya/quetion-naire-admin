@@ -94,8 +94,8 @@ export default {
     handleRegister() {
       this.$refs.registerForm.validate(async valid => {
         if (valid) {
-          // this.loading = true;
-          const res = await this.$http.get(`user/users/findByName/${this.registerForm.username}`)
+          this.loading = true
+          const res = await this.$api.user.getUserByName({ username: this.registerForm.username })
           if (res != null && res.username === this.registerForm.username) {
             this.$message({
               type: 'false',
@@ -103,7 +103,7 @@ export default {
             })
             this.loading = false
           } else {
-            await this.$http.post('user/users', this.registerForm)
+            await this.$api.user.registerUser(this.registerForm)
             this.$router.push({ name: 'login' })
             this.$message({
               type: 'success',

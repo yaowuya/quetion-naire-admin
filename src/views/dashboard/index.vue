@@ -1,251 +1,272 @@
 <template>
-  <section class="dashboard">
-    <el-row class="mt-10 px-10">
-      <el-form :inline="true" :model="formInline" class="demo-form-inline">
-        <el-form-item label="广告名称">
-          <el-input v-model="formInline.name" placeholder="广告名称" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="queryAd">查询</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="info" @click="addAd">添加</el-button>
-        </el-form-item>
-      </el-form>
-    </el-row>
-    <Table
-      :table-data="tableData"
-      :columns="columns"
-      :page-num="pageNum"
-      :page-size="pageSize"
-      :total="total"
-      @search="search"
+  <div class="app-container">
+    <el-form :inline="true" :model="queryForm" class="pl-5">
+      <el-form-item label="问卷名称">
+        <el-input v-model="queryForm.name" placeholder="请输入问卷名称" clearable />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="success" @click.stop="search()">查询</el-button>
+        <el-button type="primary" @click.stop="create()">新增</el-button>
+      </el-form-item>
+    </el-form>
+    <avue-crud
+      ref="crud"
+      :data="data"
+      :option="option"
+      :page.sync="page"
+      :table-loading="loading"
+      @size-change="sizeChange"
+      @current-change="currentChange"
     >
-      <el-table-column
-        slot="picture"
-        prop="icon"
-        label="广告图"
-        width="300"
-      >
-        <template slot-scope="scope">
-          <img :src="scope.row.icon" style="height:100px;">
-        </template>
-      </el-table-column>
-      <el-table-column
-        slot="operate"
-        fixed="right"
-        label="操作"
-        min-width="200"
-        align="center"
-      >
-        <template slot-scope="scope">
-          <el-button
-            size="mini"
-            @click="handleEdit(scope.$index, scope.row)"
-          >编辑
-          </el-button>
-          <el-button
-            size="mini"
-            type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
-          >删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </Table>
+      <template slot="menu" slot-scope="{row}">
+        <el-button size="mini" @click.stop="update(row)">编辑</el-button>
+        <el-button size="mini" type="danger" @click.stop="remove(row)">删除</el-button>
+      </template>
+    </avue-crud>
     <el-dialog
-      :title="textMap[dialogStatus]"
-      :visible.sync="dialogVisible"
+      :title="isEdit?'编辑':'新增'"
+      :visible.sync="centerDialogVisible"
       width="50%"
       center
     >
-      <el-form ref="ruleForm" :model="dialogForm" label-position="left" label-width="100px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="dialogForm.name" />
+      <el-form ref="ruleForm" :model="ruleForm" status-icon :rules="rules" label-width="100px">
+        <el-form-item label="问卷名称" prop="name">
+          <el-input v-model="ruleForm.name" />
         </el-form-item>
-        <el-form-item label="广告图">
-          <el-input v-model="dialogForm.icon" readonly />
-          <el-upload
-            class="avatar-uploader"
-            :action="uploadUrl"
-            :headers="getAuthHeaders()"
-            :show-file-list="false"
-            :on-success="afterUpload"
-          >
-            <img v-if="dialogForm.icon" :src="dialogForm.icon" class="avatar">
-            <i v-else class="el-icon-plus avatar-uploader-icon" />
-          </el-upload>
+        <el-form-item label="说明" prop="desc">
+          <el-input v-model="ruleForm.desc" type="textarea" />
         </el-form-item>
-        <el-form-item label="外链URL" prop="url">
-          <el-input v-model="dialogForm.url" />
+        <el-form-item label="分类" prop="belong">
+          <el-input v-model="ruleForm.belong" />
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="resetForm('ruleForm')">取 消</el-button>
-        <el-button type="primary" @click="submitForm('ruleForm')">提 交</el-button>
-      </span>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click.native="cancel">取 消</el-button>
+        <el-button type="primary" @click.native="save">确 定</el-button>
+      </div>
     </el-dialog>
-  </section>
+  </div>
 </template>
 
 <script>
-import Table from '../../components/Table'
-
 export default {
   name: 'Dashboard',
-  components: {
-    Table
-  },
   data() {
     return {
-      tableData: [],
-      columns: [],
-      formInline: {
+      queryForm: {
         name: ''
       },
-      ads: [],
-      textMap: {
-        update: '编辑',
-        create: '添加'
+      page: {
+        pageSizes: [10, 20, 30, 40], // 默认
+        currentPage: 1,
+        total: 0,
+        pageSize: 10
       },
-      dialogStatus: 'create',
-      dialogVisible: false,
-      dialogForm: {
+      data: [],
+      rolesList: [],
+      loading: false,
+      option: {
+        emptyText: '暂无数据',
+        columnBtn: false,
+        refreshBtn: false,
+        addBtn: false,
+        delBtn: false,
+        editBtn: false,
+        border: true,
+        stripe: true,
+        selection: false,
+        indexFixed: false,
+        selectionFixed: false,
+        align: 'center',
+        menuAlign: 'center',
+        menuWidth: 250,
+        column: [
+          {
+            label: '问卷名称',
+            prop: 'name',
+            overHidden: true
+          },
+          {
+            label: '说明',
+            prop: 'desc',
+            overHidden: true
+          },
+          {
+            label: '分类',
+            prop: 'belong',
+            overHidden: true
+          }
+        ]
+      },
+      isEdit: false,
+      centerDialogVisible: false,
+      ruleForm: {
+        _id: '',
         name: '',
-        icon: '',
-        url: ''
+        desc: '',
+        belong: ''
       },
-      dialogId: null,
-      pageNum: 1,
-      pageSize: 10,
-      total: 0
+      rules: {
+        name: [
+          { required: true, message: '请输入问卷名称', trigger: 'blur' }
+        ]
+      },
+      drawerVisible: false,
+      roleId: '',
+      userList: []
     }
   },
-  created() {
-    this.initCol()
-    this.onSearch()
+  async created() {
+    this.search()
   },
   methods: {
-    initCol() {
-      this.columns = [
-        // { slot: 'selection' },
-        { label: '名称', prop: 'name', width: '120' },
-        // { label: '广告图片', prop: 'icon', width: '220' },
-        { slot: 'picture' },
-        { label: '外链URL', prop: 'url', width: '400' },
-        { slot: 'operate' }
-      ]
+    initForm() {
+      this.ruleForm = {
+        _id: '',
+        name: '',
+        desc: '',
+        belong: ''
+      }
     },
-    search(pageNum, pageSize) {
-      this.pageNum = pageNum
-      this.pageSize = pageSize
-      this.onSearch()
+    copyObj(target, source) {
+      const result = {}
+      for (const key of Object.keys(target)) {
+        result[key] = source[key]
+      }
+      return result
     },
-    async onSearch() {
-      const res = await this.$http.post('/page/photo/photo/pageList', {
-        pageNum: this.pageNum,
-        pageSize: this.pageSize,
-        name: this.formInline.name,
-        sort: { 'order': 1 }
-      })
-      this.tableData = res.data
-      this.total = res.count
-      // console.log('onSearch', res)
+    async search() {
+      this.page.currentPage = 1
+      await this.query()
     },
-    afterUpload(res) {
-      // this.$set(this.dialogForm.url, 'icon', res.url)
-      this.dialogForm.icon = res.url
+    async query() {
+      this.loading = true
+      try {
+        const res = await this.$api.question.getQuestion({
+          name: this.queryForm.name,
+          pageSize: this.page.pageSize,
+          pageNum: this.page.currentPage
+        })
+        if (res.result) {
+          this.page.total = res.total
+          this.data = res.data
+        } else {
+          this.$message.error(res.message)
+        }
+        this.loading = false
+      } catch (e) {
+        this.loading = false
+      }
     },
-    addAd() {
-      this.dialogVisible = true
-      this.dialogStatus = 'create'
-      this.dialogId = null
-      // 删除_id,防止创建时传入重复_id
-      delete this.dialogForm._id
-      this.empty('ruleForm')
-      this.dialogForm.icon = ''
+    sizeChange(val) {
+      this.page.currentPage = 1
+      this.page.pageSize = val
+      this.query()
     },
-    queryAd() {
-      this.pageNum = 1
-      this.onSearch()
+    currentChange(val) {
+      this.page.currentPage = val
+      this.query()
     },
-    handleEdit(index, row) {
-      this.dialogVisible = true
-      this.dialogStatus = 'update'
-      this.dialogId = row._id
-      this.empty()
-      this.$nextTick(() => {
-        this.dialogForm = Object.assign({}, row)
-        this.empty('ruleForm')
-      })
+    create() {
+      this.resetForm('ruleForm')
+      this.initForm()
+      this.centerDialogVisible = true
+      this.isEdit = false
     },
-    handleDelete(index, row) {
-      this.$confirm(`是否确定要删除广告 "${row.name}"`, '提示', {
+    async update(row) {
+      this.centerDialogVisible = true
+      this.isEdit = true
+      this.ruleForm = this.copyObj(this.ruleForm, row)
+    },
+    remove(row) {
+      this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        center: true,
+        confirmButtonClass: 'el-button--danger'
       }).then(async() => {
-        await this.$http.delete(`/rest/photo/${row._id}`)
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
-        })
-        const filenameArray = row.icon.split('/')
-        const filename = filenameArray[filenameArray.length - 1]
-        await this.$http.delete('/removeFile', { data: { filename: filename }})
-        this.onSearch()
+        this.loading = true
+        const res = await this.$api.question.deleteQuestion({ _id: row._id })
+        this.loading = false
+        if (res.result) {
+          this.$message.success('删除成功')
+          this.query()
+        } else {
+          this.$message.error(res.message)
+        }
       }).catch(() => {
         this.$message({
           type: 'info',
           message: '已取消删除'
         })
+        this.loading = false
       })
     },
-    empty(form) {
-      if (this.$refs[form]) {
-        // 根据需求二选一
-        /**
-           * 移除校验结果并重置字段值
-           * 注：清除表单项name的校验及数值
-           */
-        this.$refs[form].resetFields()
-        /**
-           * 移除校验结果
-           * 注：只清除表单项name的校验，不清楚表单项name的数值
-           */
-        this.$refs[form].clearValidate()
+    cancel() {
+      this.centerDialogVisible = false
+    },
+    save() {
+      this.$refs['ruleForm'].validate((valid) => {
+        if (valid) {
+          if (this.isEdit) {
+            this.edit()
+          } else {
+            this.add()
+          }
+        } else {
+          return false
+        }
+      })
+    },
+    async edit() {
+      const loading = this.localLoading()
+      try {
+        const res = await this.$api.question.editQuestion(this.ruleForm)
+        if (res.result) {
+          this.centerDialogVisible = false
+          this.$message.success('修改成功')
+          this.query()
+        } else {
+          this.$message.error(res.message)
+        }
+        loading.close()
+      } catch (e) {
+        loading.close()
       }
     },
-    async submitForm(formName) {
-      if (this.dialogId) {
-        await this.$http.put(`/rest/photo/${this.dialogId}`, this.dialogForm)
-      } else {
-        await this.$http.post('/rest/photo', this.dialogForm)
+    async add() {
+      const loading = this.localLoading()
+      try {
+        const res = await this.$api.question.addQuestion(this.ruleForm)
+        if (res.result) {
+          this.centerDialogVisible = false
+          this.$message.success('新增成功')
+          this.query()
+        } else {
+          this.$message.error(res.message)
+        }
+        loading.close()
+      } catch (e) {
+        loading.close()
       }
-      this.$message({
-        type: 'success',
-        message: '保存成功'
-      })
-      this.dialogVisible = false
-      this.onSearch()
+    },
+    localLoading() {
+      const loading = this.$loading({ lock: true })
+      return loading
     },
     resetForm(formName) {
-      this.empty(formName)
-      this.dialogVisible = false
+      if (this.$refs[formName] !== undefined) {
+        this.$refs[formName].resetFields()
+        this.$refs[formName].clearValidate()
+      }
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-  .dashboard {
-    &-container {
-      margin: 30px;
-    }
-
-    &-text {
-      font-size: 30px;
-      line-height: 46px;
-    }
+<style scoped lang="scss">
+  .w-100{
+    width: 100% !important;
   }
 </style>

@@ -113,7 +113,7 @@ export default {
       this.$refs.loginForm.validate(async valid => {
         if (valid) {
           try {
-            const res = await this.$http.post('login', this.loginForm)
+            const res = await this.$api.user.login(this.loginForm)
             this.setAllToken(res.token)
             await this.login(this.loginForm.username)
             // this.SET_NAME(this.loginForm.username)
