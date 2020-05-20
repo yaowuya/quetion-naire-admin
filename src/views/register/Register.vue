@@ -1,9 +1,9 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
+    <el-form ref="registerForm" :model="registerForm" :rules="registerRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">登录</h3>
+        <h3 class="title">注册</h3>
       </div>
 
       <el-form-item prop="username">
@@ -12,7 +12,7 @@
         </span>
         <el-input
           ref="username"
-          v-model="loginForm.username"
+          v-model="registerForm.username"
           placeholder="Username"
           name="username"
           type="text"
@@ -28,40 +28,37 @@
         <el-input
           :key="passwordType"
           ref="password"
-          v-model="loginForm.password"
+          v-model="registerForm.password"
           :type="passwordType"
           placeholder="Password"
           name="password"
           tabindex="2"
           auto-complete="on"
-          @keyup.enter.native="handleLogin"
+          @keyup.enter.native="handleRegister"
         />
         <span class="show-pwd" @click="showPwd">
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" class="f-left" style="width:40%;" @click.native.prevent="handleLogin">登录</el-button>
-      <el-button style="width:40%;" class="f-right" @click.native.prevent="goRegister">注册</el-button>
+      <el-button
+        :loading="loading"
+        type="primary"
+        class="f-left"
+        style="width:40%;"
+        @click.native.prevent="handleRegister"
+      >注册
+      </el-button>
+      <el-button class="f-right" style="width:40%;" @click="goLogin">登陆</el-button>
 
     </el-form>
   </div>
 </template>
-
 <script>
-import { mapMutations, mapActions } from 'vuex'
-import { validUsername } from '../../utils/validate'
 
 export default {
-  name: 'Login',
+  name: 'Register',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
-      } else {
-        callback()
-      }
-    }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
         callback(new Error('The password can not be less than 6 digits'))
@@ -70,12 +67,12 @@ export default {
       }
     }
     return {
-      loginForm: {
-        username: 'admin',
-        password: '123456'
+      registerForm: {
+        username: '',
+        password: ''
       },
-      loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+      registerRules: {
+        username: [{ required: true, trigger: 'blur' }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
@@ -83,22 +80,7 @@ export default {
       redirect: undefined
     }
   },
-  watch: {
-    $route: {
-      handler: function(route) {
-        this.redirect = route.query && route.query.redirect
-      },
-      immediate: true
-    }
-  },
   methods: {
-    ...mapMutations('user', [
-      'SET_NAME'
-    ]),
-    ...mapActions('user', [
-      'setAllToken',
-      'login'
-    ]),
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -109,30 +91,35 @@ export default {
         this.$refs.password.focus()
       })
     },
-    handleLogin() {
-      this.$refs.loginForm.validate(async valid => {
+    handleRegister() {
+      this.$refs.registerForm.validate(async valid => {
         if (valid) {
-          try {
-            const res = await this.$api.user.login(this.loginForm)
-            this.setAllToken(res.token)
-            await this.login(this.loginForm.username)
-            // this.SET_NAME(this.loginForm.username)
-            this.$router.push({ path: '/' })
+          this.loading = true
+          const res = await this.$api.user.getUserByName({ username: this.registerForm.username })
+          if (res != null && res.username === this.registerForm.username) {
             this.$message({
-              type: 'success',
-              message: '登陆成功'
+              type: 'false',
+              message: '该名称已经存在'
             })
             this.loading = false
-          } catch (e) {
+          } else {
+            await this.$api.user.registerUser(this.registerForm)
+            this.$router.push({ name: 'login' })
+            this.$message({
+              type: 'success',
+              message: '注册成功'
+            })
             this.loading = false
           }
+          this.loading = false
         } else {
+          console.log('error submit!!')
           return false
         }
       })
     },
-    goRegister() {
-      return this.$router.push({ name: 'register' })
+    goLogin() {
+      return this.$router.push({ name: 'Login' })
     }
   }
 }

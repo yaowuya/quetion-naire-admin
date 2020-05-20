@@ -33,14 +33,14 @@ Vue.use(Router)
 export const constantRoutes = [
   {
     path: '/login',
-    name: 'login',
-    component: () => import('@/views/login/login'),
+    name: 'Login',
+    component: () => import('@/views/login/Login'),
     hidden: true
   },
   {
     path: '/register',
-    name: 'register',
-    component: () => import('@/views/register/register'),
+    name: 'Register',
+    component: () => import('@/views/register/Register'),
     hidden: true
   },
   {
@@ -58,24 +58,54 @@ export const constantRoutes = [
       component: () => import('@/views/dashboard/index'),
       meta: { title: '首页', icon: 'dashboard' }
     }]
-  }, {
-    path: '/good',
+  },
+  {
+    path: '/questionnaire',
     component: Layout,
-    redirect: '/good/category',
-    name: 'Good',
-    meta: { title: '商品', icon: 'example' },
+    redirect: '/questionnaire/question',
+    name: 'Questionnaire',
+    meta: { title: '问卷管理', icon: 'link' },
+    alwaysShow: true,
     children: [
       {
-        path: '/category',
-        name: 'category',
-        component: () => import('@/views/category/category'),
-        meta: { title: '分类', icon: 'example' }
+        path: '/question',
+        name: 'Question',
+        component: () => import('@/views/question/Question'),
+        meta: { title: '问卷' }
       },
       {
-        path: '/goods',
-        name: 'goods',
-        component: () => import('@/views/goods/goods'),
-        meta: { title: '商品列表', icon: 'example' }
+        path: '/topic',
+        name: 'Topic',
+        component: () => import('@/views/question/Topic'),
+        meta: { title: '题型' }
+      },
+      {
+        path: '/title',
+        name: 'Title',
+        component: () => import('@/views/question/Title'),
+        meta: { title: '题目' }
+      }
+    ]
+  },
+  {
+    path: '/system',
+    component: Layout,
+    redirect: '/system/role',
+    name: 'System',
+    meta: { title: '系统管理', icon: 'set' },
+    alwaysShow: true,
+    children: [
+      {
+        path: '/role',
+        name: 'Role',
+        component: () => import('@/views/system/Role'),
+        meta: { title: '角色' }
+      },
+      {
+        path: '/person',
+        name: 'Person',
+        component: () => import('@/views/system/Person'),
+        meta: { title: '用户' }
       }
     ]
   },
