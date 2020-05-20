@@ -43,6 +43,9 @@ export default {
   getTitle: async function(params) {
     return await http.get('question/getTitle', { params: params })
   },
+  getAllTitle: async function(params) {
+    return await http.get('rest/titles/', { params: params })
+  },
   addTitle: async function(params) {
     return await http.post('rest/titles/', params)
   },
@@ -51,5 +54,23 @@ export default {
   },
   deleteTitle: async function(params) {
     return await http.delete(`rest/titles/${params.id}`, { params: params })
+  },
+  /**
+   * 选项管理
+   */
+  getOption: async function(params) {
+    return await http.get('question/getOption', { params: params })
+  },
+  getAllOption: async function(params) {
+    return await http.get('rest/options/', { params: params })
+  },
+  addOption: async function(params) {
+    return await http.post('rest/options/', params)
+  },
+  editOption: async function(params) {
+    return await http.put(`rest/options/${params.id}`, params.data)
+  },
+  deleteOption: async function(params) {
+    return await http.delete(`rest/options/${params.id}`, { params: params })
   }
 }
