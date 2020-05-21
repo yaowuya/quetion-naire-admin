@@ -72,5 +72,20 @@ export default {
   },
   deleteOption: async function(params) {
     return await http.delete(`rest/options/${params.id}`, { params: params })
+  },
+  /**
+   * 答案管理
+   */
+  getAnswer: async function(params) {
+    return await http.get('question/getAnswer', { params: params })
+  },
+  addAnswer: async function(params) {
+    return await http.post('rest/answers/', params)
+  },
+  editAnswer: async function(params) {
+    return await http.put(`rest/answers/${params.id}`, params.data)
+  },
+  deleteAnswer: async function(params) {
+    return await http.delete(`rest/answers/${params.id}`, { params: params })
   }
 }

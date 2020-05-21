@@ -25,6 +25,9 @@ export default {
   getPerson: async function(params) {
     return await http.get('system/getPerson', { params: params })
   },
+  getAllPerson: async function(params) {
+    return await http.get('rest/persons/', { params: params })
+  },
   getPersonByDoctor: async function(params) {
     return await http.get('system/getPersonByDoctor', { params: params })
   },

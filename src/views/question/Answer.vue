@@ -1,18 +1,8 @@
 <template>
   <div class="app-container">
     <el-form :inline="true" :model="queryForm" class="pl-5">
-      <el-form-item label="题目">
-        <el-input v-model="queryForm.name" placeholder="请输入题目" clearable />
-      </el-form-item>
-      <el-form-item label="调查问卷" prop="question">
-        <el-select v-model="queryForm.question" clearable placeholder="请选择" class="w-100">
-          <el-option
-            v-for="item in questionList"
-            :key="item._id"
-            :label="item.name"
-            :value="item._id"
-          />
-        </el-select>
+      <el-form-item label="答案">
+        <el-input v-model="queryForm.name" placeholder="请输入答案" clearable />
       </el-form-item>
       <el-form-item>
         <el-button type="success" @click.stop="search()">查询</el-button>
@@ -40,22 +30,6 @@
       center
     >
       <el-form ref="ruleForm" :model="ruleForm" status-icon :rules="rules" label-width="100px">
-        <el-form-item label="题目" prop="name">
-          <el-input v-model="ruleForm.name" />
-        </el-form-item>
-        <el-form-item label="顺序" prop="order">
-          <el-input-number v-model="ruleForm.order" :min="1" />
-        </el-form-item>
-        <el-form-item label="题型" prop="topic">
-          <el-select v-model="ruleForm.topic" placeholder="请选择" class="w-100">
-            <el-option
-              v-for="item in topicList"
-              :key="item._id"
-              :label="item.chinese"
-              :value="item._id"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="调查问卷" prop="question">
           <el-select v-model="ruleForm.question" placeholder="请选择" class="w-100">
             <el-option
@@ -66,11 +40,25 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="是否必答" prop="answer">
-          <el-switch v-model="ruleForm.answer" />
+        <el-form-item label="用户" prop="question">
+          <el-select v-model="ruleForm.person" placeholder="请选择" class="w-100">
+            <el-option
+              v-for="item in personList"
+              :key="item._id"
+              :label="item.name"
+              :value="item._id"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="说明" prop="desc">
-          <el-input v-model="ruleForm.desc" type="textarea" />
+        <el-form-item label="答案" prop="option">
+          <el-select v-model="ruleForm.option" multiple placeholder="请选择" class="w-100">
+            <el-option
+              v-for="item in optionList"
+              :key="item._id"
+              :label="item.name"
+              :value="item._id"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -83,12 +71,11 @@
 
 <script>
 export default {
-  name: 'Title',
+  name: 'Answer',
   data() {
     return {
       queryForm: {
-        name: '',
-        question: ''
+        name: ''
       },
       page: {
         pageSizes: [10, 20, 30, 40], // 默认
@@ -116,25 +103,15 @@ export default {
         menuWidth: 250,
         column: [
           {
-            label: '题目',
-            prop: 'name',
-            overHidden: true
-          },
-          {
-            label: '题型',
-            prop: 'topic',
+            label: '用户',
+            prop: 'person',
             overHidden: true,
             formatter: (row, value) => {
               return value ? value.name : null
             }
           },
           {
-            label: '顺序',
-            prop: 'order',
-            overHidden: true
-          },
-          {
-            label: '调查问卷',
+            label: '问卷',
             prop: 'question',
             overHidden: true,
             formatter: (row, value) => {
@@ -142,22 +119,24 @@ export default {
             }
           },
           {
-            label: '是否必选',
-            prop: 'answer',
+            label: '选项',
+            prop: 'option',
             overHidden: true,
             formatter: (row, value) => {
-              if (value === true) {
-                return '是'
-              } else if (value === false) {
-                return '否'
+              if (value.length > 0) {
+                const result = []
+                value.forEach(v => {
+                  result.push(v.name)
+                })
+                return result.join(',')
               } else {
                 return ''
               }
             }
           },
           {
-            label: '说明',
-            prop: 'desc',
+            label: '创建时间',
+            prop: 'createTime',
             overHidden: true
           }
         ]
@@ -165,42 +144,38 @@ export default {
       isEdit: false,
       centerDialogVisible: false,
       ruleForm: {
-        name: '',
-        order: 1,
-        topic: null,
+        person: null,
         question: null,
-        answer: false,
-        desc: ''
+        option: []
       },
       rules: {
-        name: [
-          { required: true, message: '请输入题目', trigger: 'blur' }
-        ],
-        order: [
-          { required: true, message: '请输入顺序', trigger: 'blur' }
-        ],
-        topic: [
-          { required: true, message: '请选择题型', trigger: 'change' }
+        person: [
+          { required: true, message: '请选择用户', trigger: 'change' }
         ],
         question: [
-          { required: true, message: '请选择题调查问卷', trigger: 'change' }
+          { required: true, message: '请选择问卷', trigger: 'change' }
+        ],
+        option: [
+          { required: true, message: '请选择选项', trigger: 'change' }
         ]
       },
       rowId: '',
-      topicList: [],
-      questionList: []
+      personList: [],
+      questionList: [],
+      optionList: []
     }
   },
   async created() {
     await this.search()
-    await this.getAllTopic()
+    await this.getAllPerson()
     await this.getAllQuestion()
+    await this.getAllOption()
   },
   methods: {
-    async getAllTopic() {
-      const res = await this.$api.question.getAllTopic({})
+    async getAllPerson() {
+      const res = await this.$api.sys.getAllPerson({})
       if (res.result) {
-        this.topicList = res.data
+        this.personList = res.data
       } else {
         this.$message.error(res.message)
       }
@@ -213,14 +188,19 @@ export default {
         this.$message.error(res.message)
       }
     },
+    async getAllOption() {
+      const res = await this.$api.question.getAllOption({})
+      if (res.result) {
+        this.optionList = res.data
+      } else {
+        this.$message.error(res.message)
+      }
+    },
     initForm() {
       this.ruleForm = {
-        name: '',
-        order: 1,
-        topic: null,
+        person: null,
         question: null,
-        answer: false,
-        desc: ''
+        option: []
       }
     },
     async search() {
@@ -230,9 +210,8 @@ export default {
     async query() {
       this.loading = true
       try {
-        const res = await this.$api.question.getTitle({
+        const res = await this.$api.question.getAnswer({
           name: this.queryForm.name,
-          question: this.queryForm.question,
           pageSize: this.page.pageSize,
           pageNum: this.page.currentPage
         })
@@ -265,9 +244,15 @@ export default {
     async update(row) {
       this.centerDialogVisible = true
       this.isEdit = true
-      this.ruleForm = this.$CopyRow(this.ruleForm, row)
-      this.ruleForm.topic = row.topic ? row.topic._id : null
+      this.ruleForm.person = row.person ? row.person._id : null
       this.ruleForm.question = row.question ? row.question._id : null
+      const optionArray = []
+      if (row.option.length > 0) {
+        row.option.forEach(o => {
+          optionArray.push(o._id)
+        })
+      }
+      this.ruleForm.option = optionArray
       this.rowId = row._id
     },
     remove(row) {
@@ -279,7 +264,7 @@ export default {
         confirmButtonClass: 'el-button--danger'
       }).then(async() => {
         this.loading = true
-        const res = await this.$api.question.deleteTitle({ id: row._id })
+        const res = await this.$api.question.deleteAnswer({ id: row._id })
         this.loading = false
         if (res.result) {
           this.$message.success('删除成功')
@@ -314,7 +299,7 @@ export default {
     async edit() {
       const loading = this.localLoading()
       try {
-        const res = await this.$api.question.editTitle({
+        const res = await this.$api.question.editAnswer({
           id: this.rowId,
           data: this.ruleForm
         })
@@ -333,7 +318,7 @@ export default {
     async add() {
       const loading = this.localLoading()
       try {
-        const res = await this.$api.question.addTitle(this.ruleForm)
+        const res = await this.$api.question.addAnswer(this.ruleForm)
         if (res.result) {
           this.centerDialogVisible = false
           this.$message.success('新增成功')
@@ -351,10 +336,12 @@ export default {
       return loading
     },
     resetForm(formName) {
-      if (this.$refs[formName] !== undefined) {
-        this.$refs[formName].resetFields()
-        this.$refs[formName].clearValidate()
-      }
+      this.$nextTick(() => {
+        if (this.$refs[formName] !== undefined) {
+          this.$refs[formName].resetFields()
+          this.$refs[formName].clearValidate()
+        }
+      })
     }
   }
 }

@@ -90,6 +90,12 @@ export const constantRoutes = [
         name: 'Option',
         component: () => import('@/views/question/Option'),
         meta: { title: '选项' }
+      },
+      {
+        path: '/answer',
+        name: 'Answer',
+        component: () => import('@/views/question/Answer'),
+        meta: { title: '答案' }
       }
     ]
   },
