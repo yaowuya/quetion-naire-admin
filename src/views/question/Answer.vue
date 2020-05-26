@@ -1,8 +1,25 @@
 <template>
   <div class="app-container">
     <el-form :inline="true" :model="queryForm" class="pl-5">
-      <el-form-item label="答案">
-        <el-input v-model="queryForm.name" placeholder="请输入答案" clearable />
+      <el-form-item label="用户" prop="question">
+        <el-select v-model="queryForm.person" clearable filterable placeholder="请选择" class="w-100">
+          <el-option
+            v-for="item in personList"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="调查问卷" prop="question">
+        <el-select v-model="queryForm.question" clearable multiple placeholder="请选择" class="w-100">
+          <el-option
+            v-for="item in questionList"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="success" @click.stop="search()">查询</el-button>
@@ -75,7 +92,8 @@ export default {
   data() {
     return {
       queryForm: {
-        name: ''
+        question: [],
+        person: ''
       },
       page: {
         pageSizes: [10, 20, 30, 40], // 默认
@@ -119,7 +137,7 @@ export default {
             }
           },
           {
-            label: '选项',
+            label: '答案',
             prop: 'option',
             overHidden: true,
             formatter: (row, value) => {
@@ -211,7 +229,8 @@ export default {
       this.loading = true
       try {
         const res = await this.$api.question.getAnswer({
-          name: this.queryForm.name,
+          person: this.queryForm.person,
+          question: this.queryForm.question,
           pageSize: this.page.pageSize,
           pageNum: this.page.currentPage
         })

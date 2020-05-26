@@ -46,8 +46,17 @@ export default {
   getAllTitle: async function(params) {
     return await http.get('rest/titles/', { params: params })
   },
+  getTitleByQuestion: async function(params) {
+    return await http.get('question/getTitleByQuestion', { params: params })
+  },
+  getTitleAndOption: async function(params) {
+    return await http.get('question/getTitleAndOption', { params: params })
+  },
   addTitle: async function(params) {
     return await http.post('rest/titles/', params)
+  },
+  addOptionByTitle: async function(params) {
+    return await http.post('question/addOptionByTitle', params)
   },
   editTitle: async function(params) {
     return await http.put(`rest/titles/${params.id}`, params.data)

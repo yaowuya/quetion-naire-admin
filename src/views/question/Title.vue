@@ -30,6 +30,7 @@
     >
       <template slot="menu" slot-scope="{row}">
         <el-button size="mini" @click.stop="update(row)">编辑</el-button>
+        <el-button size="mini" type="primary" @click.stop="optionDrawer(row)">选项</el-button>
         <el-button size="mini" type="danger" @click.stop="remove(row)">删除</el-button>
       </template>
     </avue-crud>
@@ -78,12 +79,22 @@
         <el-button type="primary" @click.native="save">确 定</el-button>
       </div>
     </el-dialog>
+    <el-drawer
+      :visible.sync="drawerVisible"
+      :with-header="false"
+      :destroy-on-close="true"
+      size="50%"
+    >
+      <OptionComponent :title-id="titleId" :topic-id="topicId" @close-option="closeOption" />
+    </el-drawer>
   </div>
 </template>
 
 <script>
+import OptionComponent from '@/views/question/component/OptionComponent'
 export default {
   name: 'Title',
+  components: { OptionComponent },
   data() {
     return {
       queryForm: {
@@ -125,7 +136,7 @@ export default {
             prop: 'topic',
             overHidden: true,
             formatter: (row, value) => {
-              return value ? value.name : null
+              return value ? value.chinese : null
             }
           },
           {
@@ -188,7 +199,10 @@ export default {
       },
       rowId: '',
       topicList: [],
-      questionList: []
+      questionList: [],
+      drawerVisible: false,
+      titleId: null,
+      topicId: ''
     }
   },
   async created() {
@@ -270,6 +284,11 @@ export default {
       this.ruleForm.question = row.question ? row.question._id : null
       this.rowId = row._id
     },
+    optionDrawer(row) {
+      this.titleId = row._id
+      this.topicId = row.topic.name
+      this.drawerVisible = true
+    },
     remove(row) {
       this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -345,6 +364,9 @@ export default {
       } catch (e) {
         loading.close()
       }
+    },
+    closeOption() {
+      this.drawerVisible = false
     },
     localLoading() {
       const loading = this.$loading({ lock: true })

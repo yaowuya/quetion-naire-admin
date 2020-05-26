@@ -1,8 +1,28 @@
 <template>
   <div class="app-container">
     <el-form :inline="true" :model="queryForm" class="pl-5">
-      <el-form-item label="题目">
-        <el-input v-model="queryForm.name" placeholder="请输入题目" clearable />
+      <el-form-item label="选项内容">
+        <el-input v-model="queryForm.content" placeholder="请输入选项内容" clearable />
+      </el-form-item>
+      <el-form-item label="调查问卷" prop="question">
+        <el-select v-model="queryForm.question" clearable placeholder="请选择" @change="changeQuestion">
+          <el-option
+            v-for="item in questionList"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="题目" prop="title">
+        <el-select v-model="queryForm.title" filterable multiple clearable placeholder="请选择">
+          <el-option
+            v-for="item in titleList"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="success" @click.stop="search()">查询</el-button>
@@ -33,16 +53,6 @@
         <el-form-item label="选项" prop="name">
           <el-input v-model="ruleForm.name" />
         </el-form-item>
-        <el-form-item label="题目" prop="title">
-          <el-select v-model="ruleForm.title" placeholder="请选择" class="w-100">
-            <el-option
-              v-for="item in titleList"
-              :key="item._id"
-              :label="item.name"
-              :value="item._id"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item label="选项内容" prop="content">
           <el-input v-model="ruleForm.content" type="textarea" />
         </el-form-item>
@@ -61,7 +71,9 @@ export default {
   data() {
     return {
       queryForm: {
-        name: ''
+        content: '',
+        question: null,
+        title: null
       },
       page: {
         pageSizes: [10, 20, 30, 40], // 默认
@@ -113,7 +125,7 @@ export default {
       ruleForm: {
         name: '',
         content: '',
-        title: null
+        title: []
       },
       rules: {
         name: [
@@ -127,27 +139,43 @@ export default {
         ]
       },
       rowId: '',
+      questionList: [],
       titleList: []
     }
   },
   async created() {
     await this.search()
+    await this.getAllQuestion()
     await this.getAllTitle()
   },
   methods: {
     async getAllTitle() {
-      const res = await this.$api.question.getAllTitle({})
+      const res = await this.$api.question.getTitleByQuestion({
+        question: this.queryForm.question
+      })
       if (res.result) {
         this.titleList = res.data
       } else {
         this.$message.error(res.message)
       }
     },
+    async getAllQuestion() {
+      const res = await this.$api.question.getAllQuestion({})
+      if (res.result) {
+        this.questionList = res.data
+      } else {
+        this.$message.error(res.message)
+      }
+    },
+    async changeQuestion(value) {
+      this.queryForm.title = null
+      await this.getAllTitle()
+    },
     initForm() {
       this.ruleForm = {
         name: '',
         content: '',
-        title: null
+        title: []
       }
     },
     async search() {
@@ -158,7 +186,9 @@ export default {
       this.loading = true
       try {
         const res = await this.$api.question.getOption({
-          name: this.queryForm.name,
+          content: this.queryForm.content,
+          title: this.queryForm.title,
+          question: this.queryForm.question,
           pageSize: this.page.pageSize,
           pageNum: this.page.currentPage
         })
