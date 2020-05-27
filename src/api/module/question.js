@@ -20,6 +20,24 @@ export default {
     return await http.delete('question/deleteQuestion', { params: params })
   },
   /**
+   * 问卷类型管理
+   */
+  getQuestionType: async function(params) {
+    return await http.get('question/getQuestionType', { params: params })
+  },
+  getAllQuestionType: async function(params) {
+    return await http.get('rest/questionTypes/', { params: params })
+  },
+  addQuestionType: async function(params) {
+    return await http.post('rest/questionTypes/', params)
+  },
+  editQuestionType: async function(params) {
+    return await http.put(`rest/questionTypes/${params.id}`, params.data)
+  },
+  deleteQuestionType: async function(params) {
+    return await http.delete(`rest/questionTypes/${params.id}`, { params: params })
+  },
+  /**
    * 题型管理
    */
   getTopic: async function(params) {

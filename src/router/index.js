@@ -74,6 +74,12 @@ export const constantRoutes = [
         meta: { title: '问卷' }
       },
       {
+        path: '/questionType',
+        name: 'QuestionType',
+        component: () => import('@/views/question/QuestionType'),
+        meta: { title: '问卷类型' }
+      },
+      {
         path: '/topic',
         name: 'Topic',
         component: () => import('@/views/question/Topic'),

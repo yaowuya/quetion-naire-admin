@@ -132,7 +132,7 @@ export default {
         name: '',
         number: null,
         doctor: null,
-        role: ''
+        role: null
       },
       rules: {
         name: [
@@ -162,7 +162,7 @@ export default {
         name: '',
         number: null,
         doctor: null,
-        role: ''
+        role: null
       }
     },
     async search() {
