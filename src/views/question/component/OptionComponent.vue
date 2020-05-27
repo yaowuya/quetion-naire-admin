@@ -12,7 +12,7 @@
         </el-row>
       </div>
       <div v-for="(op,key) in titleData.option" :key="key">
-        <el-row type="flex" justify="space-between">
+        <el-row v-if="topicId!='input'" type="flex" justify="space-between">
           <el-col :span="20">
             <el-input v-model="op.content" placeholder="请输入内容" class="mb-10">
               <el-select slot="prepend" v-model="op.name" placeholder="选项">
@@ -28,6 +28,11 @@
           <el-col :span="4">
             <el-button icon="el-icon-plus" circle @click="addOption(op)" />
             <el-button icon="el-icon-minus" circle @click="minuOption(op)" />
+          </el-col>
+        </el-row>
+        <el-row v-if="topicId==='input'" type="flex" justify="space-between">
+          <el-col :span="20">
+            <el-input v-model="op.content" type="textarea" />
           </el-col>
         </el-row>
       </div>
@@ -129,9 +134,11 @@ export default {
         return false
       }
       this.titleData.option.forEach(item => {
-        if (item.name === '' || item.name === undefined) {
-          validate = true
-          return
+        if (this.topic !== 'input') {
+          if (item.name === '' || item.name === undefined) {
+            validate = true
+            return
+          }
         }
         if (item.content === '' || item.content === undefined) {
           validate = true
