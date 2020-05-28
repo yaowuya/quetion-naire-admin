@@ -77,6 +77,9 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <el-input v-model="ruleForm.content" type="textarea" />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click.native="cancel">取 消</el-button>
@@ -153,6 +156,11 @@ export default {
             }
           },
           {
+            label: '内容',
+            prop: 'content',
+            overHidden: true
+          },
+          {
             label: '创建时间',
             prop: 'createTime',
             overHidden: true
@@ -164,6 +172,7 @@ export default {
       ruleForm: {
         person: null,
         question: null,
+        content: '',
         option: []
       },
       rules: {
@@ -218,6 +227,7 @@ export default {
       this.ruleForm = {
         person: null,
         question: null,
+        content: '',
         option: []
       }
     },
