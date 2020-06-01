@@ -21,9 +21,19 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="调查问卷" prop="question">
+        <el-select v-model="queryForm.questionType" multiple placeholder="请选择" class="w-100">
+          <el-option
+            v-for="item in qtList"
+            :key="item._id"
+            :label="item.chinese"
+            :value="item._id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="success" @click.stop="search()">查询</el-button>
-        <el-button type="primary" @click.stop="create()">新增</el-button>
+        <!--        <el-button type="primary" @click.stop="create()">新增</el-button>-->
       </el-form-item>
     </el-form>
     <avue-crud
@@ -36,7 +46,8 @@
       @current-change="currentChange"
     >
       <template slot="menu" slot-scope="{row}">
-        <el-button size="mini" @click.stop="update(row)">编辑</el-button>
+        <el-button size="mini" type="success" @click.stop="detail(row)">查看问卷</el-button>
+        <!--        <el-button size="mini" @click.stop="update(row)">编辑</el-button>-->
         <el-button size="mini" type="danger" @click.stop="remove(row)">删除</el-button>
       </template>
     </avue-crud>
@@ -86,17 +97,34 @@
         <el-button type="primary" @click.native="save">确 定</el-button>
       </div>
     </el-dialog>
+    <el-drawer
+      :visible.sync="drawerVisible"
+      :with-header="false"
+      :destroy-on-close="true"
+      size="50%"
+    >
+      <AnswerComponent
+        v-if="show"
+        :person-id="personId"
+        :question-id="questionId"
+        :question-type-id="questionTypeId"
+        @close-option="closeOption"
+      />
+    </el-drawer>
   </div>
 </template>
 
 <script>
+import AnswerComponent from '@/views/question/component/AnswerComponent'
 export default {
   name: 'Answer',
+  components: { AnswerComponent },
   data() {
     return {
       queryForm: {
+        person: '',
         question: [],
-        person: ''
+        questionType: []
       },
       page: {
         pageSizes: [10, 20, 30, 40], // 默认
@@ -140,25 +168,12 @@ export default {
             }
           },
           {
-            label: '答案',
-            prop: 'option',
+            label: '问卷类型',
+            prop: 'questionType',
             overHidden: true,
             formatter: (row, value) => {
-              if (value.length > 0) {
-                const result = []
-                value.forEach(v => {
-                  result.push(v.name)
-                })
-                return result.join(',')
-              } else {
-                return ''
-              }
+              return value ? value.chinese : null
             }
-          },
-          {
-            label: '内容',
-            prop: 'content',
-            overHidden: true
           },
           {
             label: '创建时间',
@@ -189,12 +204,19 @@ export default {
       rowId: '',
       personList: [],
       questionList: [],
-      optionList: []
+      optionList: [],
+      qtList: [],
+      drawerVisible: false,
+      show: false,
+      personId: '',
+      questionId: '',
+      questionTypeId: ''
     }
   },
   async created() {
     await this.search()
     await this.getAllPerson()
+    await this.getAllQuestionType()
     await this.getAllQuestion()
     await this.getAllOption()
   },
@@ -223,6 +245,14 @@ export default {
         this.$message.error(res.message)
       }
     },
+    async getAllQuestionType() {
+      const res = await this.$api.question.getAllQuestionType({})
+      if (res.result) {
+        this.qtList = res.data
+      } else {
+        this.$message.error(res.message)
+      }
+    },
     initForm() {
       this.ruleForm = {
         person: null,
@@ -241,6 +271,7 @@ export default {
         const res = await this.$api.question.getAnswer({
           person: this.queryForm.person,
           question: this.queryForm.question,
+          questionType: this.queryForm.questionType,
           pageSize: this.page.pageSize,
           pageNum: this.page.currentPage
         })
@@ -270,6 +301,19 @@ export default {
       this.centerDialogVisible = true
       this.isEdit = false
     },
+    detail(row) {
+      this.personId = row.person._id
+      this.questionId = row.question._id
+      this.questionTypeId = row.questionType._id
+      this.drawerVisible = true
+      this.show = false
+      this.$nextTick(() => {
+        this.show = true
+      })
+    },
+    closeOption() {
+      this.drawerVisible = false
+    },
     async update(row) {
       this.centerDialogVisible = true
       this.isEdit = true
@@ -282,6 +326,7 @@ export default {
         })
       }
       this.ruleForm.option = optionArray
+      this.ruleForm.content = row.content
       this.rowId = row._id
     },
     remove(row) {
@@ -293,11 +338,16 @@ export default {
         confirmButtonClass: 'el-button--danger'
       }).then(async() => {
         this.loading = true
-        const res = await this.$api.question.deleteAnswer({ id: row._id })
+        console.log(row)
+        const res = await this.$api.question.deleteAnswer({
+          personId: row.person._id,
+          questionId: row.question._id,
+          questionTypeId: row.questionType._id
+        })
         this.loading = false
         if (res.result) {
           this.$message.success('删除成功')
-          this.query()
+          await this.query()
         } else {
           this.$message.error(res.message)
         }

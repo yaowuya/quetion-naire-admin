@@ -85,7 +85,7 @@
       :destroy-on-close="true"
       size="50%"
     >
-      <OptionComponent :title-id="titleId" :topic-id="topicId" @close-option="closeOption" />
+      <OptionComponent v-if="showOption" :title-id="titleId" :topic-id="topicId" @close-option="closeOption" />
     </el-drawer>
   </div>
 </template>
@@ -202,7 +202,8 @@ export default {
       questionList: [],
       drawerVisible: false,
       titleId: null,
-      topicId: ''
+      topicId: '',
+      showOption: false
     }
   },
   async created() {
@@ -288,6 +289,10 @@ export default {
       this.titleId = row._id
       this.topicId = row.topic.name
       this.drawerVisible = true
+      this.showOption = false
+      this.$nextTick(() => {
+        this.showOption = true
+      })
     },
     remove(row) {
       this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
@@ -302,7 +307,7 @@ export default {
         this.loading = false
         if (res.result) {
           this.$message.success('删除成功')
-          this.query()
+          await this.query()
         } else {
           this.$message.error(res.message)
         }
@@ -340,7 +345,7 @@ export default {
         if (res.result) {
           this.centerDialogVisible = false
           this.$message.success('修改成功')
-          this.query()
+          await this.query()
         } else {
           this.$message.error(res.message)
         }
@@ -356,7 +361,7 @@ export default {
         if (res.result) {
           this.centerDialogVisible = false
           this.$message.success('新增成功')
-          this.query()
+          await this.query()
         } else {
           this.$message.error(res.message)
         }

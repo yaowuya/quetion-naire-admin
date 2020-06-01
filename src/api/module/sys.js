@@ -4,40 +4,40 @@ export default {
   /**
    * 角色
    */
-  getRole: async function(params) {
-    return await http.get('rest/roles/page', { params: params })
+  getRole: function(params) {
+    return http.get('rest/roles/page', { params: params })
   },
-  getAllRole: async function(params) {
-    return await http.get('rest/roles/', { params: params })
+  getAllRole: function(params) {
+    return http.get('rest/roles/', { params: params })
   },
-  addRole: async function(params) {
-    return await http.post('rest/roles/', params)
+  addRole: function(params) {
+    return http.post('rest/roles/', params)
   },
-  editRole: async function(params) {
-    return await http.put(`rest/roles/${params.id}`, params.data)
+  editRole: function(params) {
+    return http.put(`rest/roles/${params.id}`, params.data)
   },
-  deleteRole: async function(params) {
-    return await http.delete(`rest/roles/${params.id}`, { params: params })
+  deleteRole: function(params) {
+    return http.delete(`rest/roles/${params.id}`, { params: params })
   },
   /**
    * 用户
    */
-  getPerson: async function(params) {
-    return await http.get('system/getPerson', { params: params })
+  getPerson: function(params) {
+    return http.get('system/getPerson', { params: params })
   },
-  getAllPerson: async function(params) {
-    return await http.get('rest/persons/', { params: params })
+  getAllPerson: function(params) {
+    return http.get('rest/persons/', { params: params })
   },
-  getPersonByDoctor: async function(params) {
-    return await http.get('system/getPersonByDoctor', { params: params })
+  getPersonByDoctor: function(params) {
+    return http.get('system/getPersonByDoctor', { params: params })
   },
-  addPerson: async function(params) {
-    return await http.post('system/addPerson', params)
+  addPerson: function(params) {
+    return http.post('system/addPerson', params)
   },
-  editPerson: async function(params) {
-    return await http.put(`rest/persons/${params.id}`, params.data)
+  editPerson: function(params) {
+    return http.put(`rest/persons/${params.id}`, params.data)
   },
-  deletePerson: async function(params) {
-    return await http.delete(`rest/persons/${params.id}`, { params: params })
+  deletePerson: function(params) {
+    return http.delete(`rest/persons/${params.id}`, { params: params })
   }
 }

@@ -7,7 +7,7 @@
             <span class="header-span">{{ titleData.order }}.{{ titleData.name }}</span>
           </el-col>
           <el-col :span="4">
-            <el-button type="success" class="f-right" size="small" @click="addOptionByTitle">确认提交</el-button>
+            <el-button type="success" class="f-right" size="small" @click.stop="addOptionByTitle">确认提交</el-button>
           </el-col>
         </el-row>
       </div>
@@ -26,8 +26,8 @@
             </el-input>
           </el-col>
           <el-col :span="4">
-            <el-button icon="el-icon-plus" circle @click="addOption(op)" />
-            <el-button icon="el-icon-minus" circle @click="minuOption(op)" />
+            <el-button icon="el-icon-plus" circle @click="addOption(op,key)" />
+            <el-button icon="el-icon-minus" circle @click="minuOption(op,key)" />
           </el-col>
         </el-row>
         <el-row v-if="topicId==='input'" type="flex" justify="space-between">
@@ -59,24 +59,19 @@ export default {
   data() {
     return {
       alphabetList: alphabet(),
-      titleData: {},
-      optionList: []
+      titleData: {}
     }
   },
-  async created() {
-    await this.getTitleAndOption()
+  created() {
+    this.getTitleAndOption()
   },
   methods: {
     async getTitleAndOption() {
       const res = await this.$api.question.getTitleAndOption({ titleId: this.titleId })
       if (res.result) {
-        console.log(res.data)
+        // console.log(res.data)
         this.titleData = res.data[0]
-        if (this.titleData.option.length > 0) {
-          this.titleData.option.forEach(item => {
-            this.optionList.push(item._id)
-          })
-        } else {
+        if (this.titleData.option.length === 0) {
           this.titleData.option.push({
             name: this.alphabetList[0],
             content: '',
@@ -87,20 +82,19 @@ export default {
         this.$message.error(res.message)
       }
     },
-    addOption(op) {
-      this.titleData.option.splice(
-        this.titleData.option.findIndex(v => v._id === op._id) + 1, 0,
+    addOption(op, index) {
+      this.titleData.option.splice(index + 1, 0,
         {
           name: this.alphabetList[this.alphabetList.indexOf(op.name) + 1],
           content: '',
           title: this.titleData._id
         })
     },
-    minuOption(op) {
+    minuOption(op, index) {
       if (this.titleData.option.length === 1) {
         return
       }
-      this.titleData.option.splice(this.titleData.option.findIndex(v => v._id === op._id), 1)
+      this.titleData.option.splice(index, 1)
     },
     async addOptionByTitle() {
       if (!this.validateSubmit()) {
@@ -110,7 +104,7 @@ export default {
       try {
         const res = await this.$api.question.addOptionByTitle({
           option: this.titleData.option,
-          optionList: this.optionList
+          titleId: this.titleId
         })
         if (res.result) {
           this.$message.success('提交成功')
@@ -157,13 +151,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  .header-span{
+  .header-span {
     font-size: 18px;
     font-weight: bold;
     line-height: 30px;
   }
 
-  /deep/.el-select .el-input {
+  /deep/ .el-select .el-input {
     width: 80px;
   }
 </style>

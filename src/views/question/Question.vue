@@ -30,6 +30,9 @@
       center
     >
       <el-form ref="ruleForm" :model="ruleForm" status-icon :rules="rules" label-width="100px">
+        <el-form-item label="问卷ID" prop="questionId">
+          <el-input v-model="ruleForm.questionId" />
+        </el-form-item>
         <el-form-item label="问卷名称" prop="name">
           <el-input v-model="ruleForm.name" />
         </el-form-item>
@@ -89,6 +92,11 @@ export default {
         menuWidth: 250,
         column: [
           {
+            label: '问卷ID',
+            prop: 'questionId',
+            overHidden: true
+          },
+          {
             label: '问卷名称',
             prop: 'name',
             overHidden: true
@@ -116,11 +124,15 @@ export default {
       centerDialogVisible: false,
       ruleForm: {
         _id: '',
+        questionId: '',
         name: '',
         desc: '',
         questionType: []
       },
       rules: {
+        questionId: [
+          { required: true, message: '请输入问卷ID', trigger: 'blur' }
+        ],
         name: [
           { required: true, message: '请输入问卷名称', trigger: 'blur' }
         ],
@@ -139,6 +151,7 @@ export default {
     initForm() {
       this.ruleForm = {
         _id: '',
+        questionId: '',
         name: '',
         desc: '',
         questionType: []
