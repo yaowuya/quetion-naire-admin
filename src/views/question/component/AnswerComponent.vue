@@ -1,6 +1,6 @@
 <template>
   <div class="body">
-    <div id="answerDetail" class="app-container body-pdf">
+    <div id="answerDetail" class="app-container">
       <el-row type="flex" justify="center" class="mb-20">
         <el-tag type="success" effect="dark">{{ questionName }}</el-tag>
         <el-button round class="export-btn" size="small" @click.stop="exportPdf">导出</el-button>
@@ -83,6 +83,7 @@ export default {
     width: 100%;
     height: 100vh;
     overflow-y: auto;
+    background-color: #fff;
   }
   .body-pdf{
     width: 100%;

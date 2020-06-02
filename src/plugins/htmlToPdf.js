@@ -1,81 +1,87 @@
-// 下面两个package要单独安装
-import html2Canvas from 'html2canvas'
-import JsPDF from 'jspdf'
+/* eslint-disable */
+//不使用JQuery版的
+import html2canvas from 'html2canvas';
+import JsPDF from 'jspdf';
+import Vue from 'vue'
+/**
+ * @param  ele          要生成 pdf 的DOM元素（容器）
+ * @param  padfName     PDF文件生成后的文件名字
+ * */
 
-export default {
-  install(Vue, options) {
-    Vue.prototype.$getPdf = function(id, title) {
-      // 获取当前浏览器滚动条的宽度，原理是设置一个不可见的div，查看设置scorll前后的宽度差
-      function getScrollWidth() {
-        var noScroll, scroll
-        var oDiv = document.createElement('DIV')
-        oDiv.style.cssText = 'position:absolute; top:-1000px; width:100px; height:100px; overflow:hidden;'
-        noScroll = document.body.appendChild(oDiv).clientWidth
-        oDiv.style.overflowY = 'scroll'
-        scroll = oDiv.clientWidth
-        document.body.removeChild(oDiv)
-        return noScroll - scroll
-      }
+const PDF={}
 
-      const SIZE = [595.28, 841.89] // a4宽高
-      const node = document.querySelector(`#${id}`)
-      let nodeW
-      if (getScrollWidth()) {
-        nodeW = node.clientWidth - (17 - getScrollWidth())
-      } else {
-        nodeW = node.clientWidth
-      }
-      // let nodeW = node.clientWidth
-      // 单页高度
-      const pageH = nodeW / SIZE[0] * SIZE[1]
-      const modules = node.children
-      for (let i = 0, len = modules.length; i < len; i++) {
-        const item = modules[i]
-        const beforeH = item.offsetTop
-        const afterH = beforeH + item.clientHeight
-        const currentPage = parseInt(beforeH / pageH)
-        // div距离父级的高度是pageH的倍数x,但是加上自身高度之后是pageH的倍数x+1,说明被切割
-        if (currentPage !== parseInt(afterH / pageH)) {
-          // 上一个元素底部距离父级的高度
-          const lastItemAftarH = modules[i - 1].offsetTop + modules[i - 1].clientHeight
-          const fill = pageH - lastItemAftarH % pageH
-          item.style.marginTop = fill + 'px'
-        }
-      }
-      html2Canvas(node, {
-        // allowTaint: true,
-        useCORS: true, // allowTaint与useCORS看情况二选一,设置 useCORS 为 true，即可开启图片跨域
-        scale: 2 // 设置 scale 为 2 及以上，即可支持高分屏
-      }).then(function(canvas) {
-        const contentWidth = canvas.width
-        const contentHeight = canvas.height
-        // 一页pdf显示html页面生成的canvas高度
-        const pageHeight = contentWidth / SIZE[0] * SIZE[1]
-        // 未生成pdf的html页面高度
-        let leftHeight = contentHeight
-        // pdf页面竖向偏移
-        let position = 0
-        // 横向页边距
-        const sidesway = 0
-        // html页面生成的canvas在pdf中图片的宽高
-        const imgWidth = SIZE[0] - sidesway * 2
-        const imgHeight = imgWidth / contentWidth * contentHeight
-        const pageData = canvas.toDataURL('image/jpeg', 1.0)
-        const PDF = new JsPDF('', 'pt', 'a4')
-        if (leftHeight < pageHeight) {
-          PDF.addImage(pageData, 'JPEG', sidesway, position, imgWidth, imgHeight)
-        } else {
-          while (leftHeight > 0) {
-            PDF.addImage(pageData, 'JPEG', sidesway, position, imgWidth, imgHeight)
-            leftHeight -= pageHeight
-            position -= SIZE[1]
-            if (leftHeight > 0) {
-              PDF.addPage()
-            }
+PDF.install=function(Vue,options){
+  Vue.prototype.$getPdf=function(id, pdfName){
+    const ele = document.querySelector(`#${id}`)
+    let eleW = ele.offsetWidth;// 获得该容器的宽
+    let eleH = ele.offsetHeight;// 获得该容器的高
+    let eleOffsetTop = ele.offsetTop;  // 获得该容器到文档顶部的距离
+    let eleOffsetLeft = ele.offsetLeft; // 获得该容器到文档最左的距离
+
+    let canvas = document.createElement("canvas");
+    let abs = 0;
+
+    let win_in = document.documentElement.clientWidth || document.body.clientWidth; // 获得当前可视窗口的宽度（不包含滚动条）
+    let win_out = window.innerWidth; // 获得当前窗口的宽度（包含滚动条）
+
+    if(win_out>win_in){
+      // abs = (win_o - win_i)/2;    // 获得滚动条长度的一半
+      abs = (win_out - win_in)/2;    // 获得滚动条宽度的一半
+      // console.log(a, '新abs');
+    }
+    canvas.width = eleW * 2;    // 将画布宽&&高放大两倍
+    canvas.height = eleH * 2;
+
+    var context = canvas.getContext("2d");
+    context.scale(2, 2);
+    context.translate(-eleOffsetLeft -abs, -eleOffsetTop);
+    // 这里默认横向没有滚动条的情况，因为offset.left(),有无滚动条的时候存在差值，因此
+    // translate的时候，要把这个差值去掉
+
+    // html2canvas(element).then( (canvas)=>{ //报错
+    // html2canvas(element[0]).then( (canvas)=>{
+    html2canvas( ele, {
+      dpi: 300,
+      // allowTaint: true,  //允许 canvas 污染， allowTaint参数要去掉，否则是无法通过toDataURL导出canvas数据的
+      useCORS:true,  //允许canvas画布内 可以跨域请求外部链接图片, 允许跨域请求。
+      scale: 2
+    } ).then( (canvas)=>{
+      let contentWidth = canvas.width;
+      let contentHeight = canvas.height;
+      //一页pdf显示html页面生成的canvas高度;
+      let pageHeight = contentWidth / 592.28 * 841.89;
+      //未生成pdf的html页面高度
+      let leftHeight = contentHeight;
+      //页面偏移
+      let position = 0;
+      //a4纸的尺寸[595.28,841.89]，html页面生成的canvas在pdf中图片的宽高
+      let imgWidth = 595.28;
+      let imgHeight = 595.28/contentWidth * contentHeight;
+      let pageData = canvas.toDataURL('image/jpeg', 1.0);
+      let pdf = new JsPDF('', 'pt', 'a4');
+      //有两个高度需要区分，一个是html页面的实际高度，和生成pdf的页面高度(841.89)
+      //当内容未超过pdf一页显示的范围，无需分页
+      if (leftHeight < pageHeight) {
+        //在pdf.addImage(pageData, 'JPEG', 左，上，宽度，高度)设置在pdf中显示；
+        pdf.addImage(pageData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        // pdf.addImage(pageData, 'JPEG', 20, 40, imgWidth, imgHeight);
+      } else {    // 分页
+        while(leftHeight > 0) {
+          pdf.addImage(pageData, 'JPEG', 0, position, imgWidth, imgHeight);
+          leftHeight -= pageHeight;
+          position -= 841.89;
+          //避免添加空白页
+          if(leftHeight > 0) {
+            pdf.addPage();
           }
         }
-        PDF.save(title + '.pdf')
-      })
-    }
+      }
+      //可动态生成
+      pdf.save(pdfName);
+    })
   }
 }
+
+Vue.use(PDF)
+export default PDF
+
