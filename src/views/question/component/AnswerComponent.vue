@@ -1,26 +1,28 @@
 <template>
   <div class="body">
-    <div id="answerDetail" class="app-container">
-      <el-row type="flex" justify="center">
-        <el-tag type="success" effect="dark">{{ answerObj.questionName }}</el-tag>
-        <el-button round class="export-btn" size="small" @click.stop="exportPdf">导出</el-button>
-      </el-row>
-      <el-divider></el-divider>
-      <el-row type="flex" justify="space-around">
-        <el-tag type="success">姓名：{{answerObj.personName}}</el-tag>
-        <el-tag type="info">身份：{{answerObj.role}}</el-tag>
-        <el-tag type="warning">填写时间：{{answerObj.createTime}}</el-tag>
-      </el-row>
-      <el-divider></el-divider>
-      <el-card v-for="(title,index) in titleList" :key="index" class="box-card mb-15">
-        <div slot="header" class="clearfix">
-          <span>{{ title.order+'.'+title.title }}</span>
-        </div>
-        <div v-for="(op,i) in title.option" :key="i" class="text item">
-          <span v-if="title.topic==='input'">{{ title.content }}</span>
-          <span v-else>{{ op.name+"."+op.content }}</span>
-        </div>
-      </el-card>
+    <div id="answerDetail">
+      <div class="body-container">
+        <el-row type="flex" justify="center">
+          <el-tag type="success" effect="dark">{{ answerObj.questionName }}</el-tag>
+          <el-button round class="export-btn" size="small" @click.stop="exportPdf">导出</el-button>
+        </el-row>
+        <el-divider />
+        <el-row type="flex" justify="space-around">
+          <el-tag type="success">姓名：{{ answerObj.personName }}</el-tag>
+          <el-tag type="info">身份：{{ answerObj.role }}</el-tag>
+          <el-tag type="warning">填写时间：{{ answerObj.createTime }}</el-tag>
+        </el-row>
+        <el-divider />
+        <el-card v-for="(title,index) in titleList" :key="index" class="box-card mb-15">
+          <div slot="header" class="clearfix">
+            <span>{{ title.order+'.'+title.title }}</span>
+          </div>
+          <div v-for="(op,i) in title.option" :key="i" class="text item">
+            <span v-if="title.topic==='input'">{{ title.content }}</span>
+            <span v-else>{{ op.name+"."+op.content }}</span>
+          </div>
+        </el-card>
+      </div>
     </div>
   </div>
 </template>
@@ -75,7 +77,7 @@ export default {
     },
     exportPdf() {
       this.$getPdf('answerDetail', this.answerObj.questionName)
-      this.getAnswerDetail()
+      // this.getAnswerDetail()
     },
     localLoading() {
       const loading = this.$loading({ lock: true })
@@ -92,10 +94,11 @@ export default {
     overflow-y: auto;
     background-color: #fff;
   }
-  .body-pdf{
-    width: 100%;
-    height: auto;
-    overflow:visible;
+  #answerDetail{
+    padding: 20px;
+  }
+  .body-container{
+    margin: 20px;
   }
   .text {
     font-size: 14px;
