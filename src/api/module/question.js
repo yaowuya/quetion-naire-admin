@@ -117,5 +117,14 @@ export default {
   },
   getAnswerDetail: function(params) {
     return http.get('question/getAnswerDetail', { params: params })
+  },
+  /**
+   * 首页
+   */
+  getAnswerMerge: function(params) {
+    return http.get('question/getAnswerMerge', { params: params })
+  },
+  getMergeDetail: function(params) {
+    return http.get('question/getMergeDetail', { params: params })
   }
 }

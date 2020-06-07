@@ -26,7 +26,7 @@ export default {
     return http.get('system/getPerson', { params: params })
   },
   getAllPerson: function(params) {
-    return http.get('rest/persons/', { params: params })
+    return http.get('system/getAllPerson', { params: params })
   },
   getPersonByDoctor: function(params) {
     return http.get('system/getPersonByDoctor', { params: params })

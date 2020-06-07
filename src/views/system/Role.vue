@@ -6,7 +6,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="success" @click.stop="search()">查询</el-button>
-        <el-button type="primary" @click.stop="create()">新增</el-button>
+        <el-button type="primary" disabled @click.stop="create()">新增</el-button>
       </el-form-item>
     </el-form>
     <avue-crud
@@ -19,8 +19,8 @@
       @current-change="currentChange"
     >
       <template slot="menu" slot-scope="{row}">
-        <el-button size="mini" @click.stop="update(row)">编辑</el-button>
-        <el-button size="mini" type="danger" @click.stop="remove(row)">删除</el-button>
+        <el-button size="mini" disabled @click.stop="update(row)">编辑</el-button>
+        <el-button size="mini" type="danger" disabled @click.stop="remove(row)">删除</el-button>
       </template>
     </avue-crud>
     <el-dialog

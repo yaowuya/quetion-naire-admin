@@ -31,7 +31,7 @@
     >
       <el-form ref="ruleForm" :model="ruleForm" status-icon :rules="rules" label-width="100px">
         <el-form-item label="问卷ID" prop="questionId">
-          <el-input v-model="ruleForm.questionId" />
+          <el-input v-model="ruleForm.questionId" :readonly="isEdit"/>
         </el-form-item>
         <el-form-item label="问卷名称" prop="name">
           <el-input v-model="ruleForm.name" />

@@ -8,7 +8,10 @@
             :key="item._id"
             :label="item.name"
             :value="item._id"
-          />
+          >
+            <span style="float: left">{{ item.name }}</span>
+            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.role.chinese }}</span>
+          </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="调查问卷" prop="question">
@@ -21,7 +24,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="调查问卷" prop="question">
+      <el-form-item label="问卷类型" prop="question">
         <el-select v-model="queryForm.questionType" multiple placeholder="请选择" class="w-100">
           <el-option
             v-for="item in qtList"
@@ -214,7 +217,7 @@ export default {
     }
   },
   async created() {
-    await this.search()
+    await this.query()
     await this.getAllPerson()
     await this.getAllQuestionType()
     await this.getAllQuestion()
